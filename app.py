@@ -77,7 +77,7 @@ with st.sidebar:
         tz_str = loc["timezone"]
 
     st.divider()
-    min_altitude = st.slider("Min. object altitude (°)", 15, 45, 25, step=5,
+    min_altitude = st.slider("Min. object altitude (°)", 15, 45, 35, step=5,
                              help="Objects below this elevation are excluded.")
     show_planets = st.checkbox("Include planets", value=True)
 
