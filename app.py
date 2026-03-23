@@ -82,7 +82,7 @@ with st.sidebar:
     show_planets = st.checkbox("Include planets", value=True)
 
     st.divider()
-    if st.button("🔄 Refresh Data", use_container_width=True):
+    if st.button("🔄 Refresh Data", width="stretch"):
         st.cache_data.clear()
         st.rerun()
 
@@ -234,7 +234,7 @@ st.divider()
 
 st.subheader("7-Day Weather Forecast")
 fig_meteo = create_meteogram(df, tz, night_windows=night_windows_all, title="")
-st.plotly_chart(fig_meteo, use_container_width=True)
+st.plotly_chart(fig_meteo, width="stretch")
 
 
 # ─── Nightly score cards ──────────────────────────────────────────────────────
@@ -280,7 +280,7 @@ fig_window = create_observing_window_chart(
     moon_info=moon_info,
     tz=tz,
 )
-st.plotly_chart(fig_window, use_container_width=True)
+st.plotly_chart(fig_window, width="stretch")
 
 
 # Twilight table + moon info side by side
@@ -301,7 +301,7 @@ with tw_left:
                 _fmt(night_window.get("astro_evening")),
             ],
         }),
-        hide_index=True, use_container_width=True,
+        hide_index=True, width="stretch",
     )
 
 with tw_right:
@@ -316,7 +316,7 @@ with tw_right:
                 _fmt(night_window.get("sunrise")),
             ],
         }),
-        hide_index=True, use_container_width=True,
+        hide_index=True, width="stretch",
     )
 
 # Moon info
