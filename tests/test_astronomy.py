@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import pytz
 
-from astronomy import AstronomyCalculator, _moon_phase_emoji
+from seestar.astronomy import AstronomyCalculator, _moon_phase_emoji
 
 TZ = pytz.timezone("Europe/Vienna")
 VIENNA = {"lat": 48.2082, "lon": 16.3738}

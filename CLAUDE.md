@@ -27,17 +27,20 @@ Other Austrian locations and fully custom coordinates are supported.
 ## Architecture
 
 ```
-weather_checker/
-├── app.py           – Streamlit UI (entry point)
-├── weather.py       – Open-Meteo + 7timer API integration
-├── astronomy.py     – Twilight, moon phase, object visibility (astroplan/astropy)
-├── analysis.py      – Observing quality score (0-100) and nightly summaries
-├── charts.py        – Plotly dark-theme meteogram and observing-window charts
-├── catalog.py       – 38 curated Seestar S50 DSO targets
-├── tests/           – pytest unit tests (124 tests)
+weather-checker/
+├── app.py                        – Streamlit UI (entry point)
+├── seestar/                      – Core package
+│   ├── __init__.py
+│   ├── catalog.py                – 38 curated Seestar S50 DSO targets
+│   ├── weather.py                – Open-Meteo + 7timer API integration
+│   ├── astronomy.py              – Twilight, moon phase, object visibility (astroplan/astropy)
+│   ├── analysis.py               – Observing quality score (0-100) and nightly summaries
+│   └── charts.py                 – Plotly dark-theme meteogram and observing-window charts
+├── tests/                        – pytest unit tests (124 tests)
 ├── .github/
-│   └── workflows/tests.yml  – CI: pytest on Python 3.11 and 3.12
-├── pyproject.toml   – pytest config and coverage settings
+│   └── workflows/tests.yml       – CI: pytest on Python 3.11 and 3.12
+├── pyproject.toml                – pytest config and coverage settings
+├── README.md
 └── requirements.txt
 ```
 
@@ -163,3 +166,12 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 - Fixed four bugs discovered during testing
 - Initialized git repo, pushed to GitHub
 - Added GitHub Actions CI workflow (Python 3.11 + 3.12)
+
+### Session 2 (2026-03-23)
+- Moved source modules into a `seestar/` package; `app.py` remains at root as the Streamlit entry point
+- Updated all internal imports to use relative imports (`.catalog`, `.analysis`) within the package
+- Updated `app.py` and all test files to use `seestar.*` absolute imports
+- Updated mock patch paths in `test_weather.py` (`weather.requests.get` → `seestar.weather.requests.get`)
+- Added `pythonpath = ["."]` to `pyproject.toml` so pytest resolves the `seestar` package from the project root
+- Wrote `README.md` in Catppuccin badge style matching the MTR repo
+- All 124 tests continue to pass after the restructure

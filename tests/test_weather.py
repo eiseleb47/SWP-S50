@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from weather import (
+from seestar.weather import (
     _cloud_from_7t,
     _wind_from_7t,
     fetch_open_meteo,
@@ -107,7 +107,7 @@ class TestFetchOpenMeteo:
         mock_resp.json.return_value = _make_om_response()
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             df = fetch_open_meteo(48.21, 16.37)
 
         assert isinstance(df, pd.DataFrame)
@@ -118,7 +118,7 @@ class TestFetchOpenMeteo:
         mock_resp.json.return_value = _make_om_response(N_HOURS)
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             df = fetch_open_meteo(48.21, 16.37)
 
         assert len(df) == N_HOURS
@@ -128,7 +128,7 @@ class TestFetchOpenMeteo:
         mock_resp.json.return_value = _make_om_response()
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             df = fetch_open_meteo(48.21, 16.37)
 
         assert df.index.tz is not None
@@ -138,7 +138,7 @@ class TestFetchOpenMeteo:
         mock_resp = MagicMock()
         mock_resp.raise_for_status.side_effect = Exception("HTTP 500")
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             with pytest.raises(Exception):
                 fetch_open_meteo(48.21, 16.37)
 
@@ -151,7 +151,7 @@ class TestFetch7timer:
         mock_resp.json.return_value = _make_7timer_response()
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             df = fetch_7timer(48.21, 16.37)
 
         assert isinstance(df, pd.DataFrame)
@@ -160,7 +160,7 @@ class TestFetch7timer:
         assert "cloud_cover_7t" in df.columns
 
     def test_returns_none_on_network_error(self):
-        with patch("weather.requests.get", side_effect=Exception("timeout")):
+        with patch("seestar.weather.requests.get", side_effect=Exception("timeout")):
             result = fetch_7timer(48.21, 16.37)
 
         assert result is None
@@ -170,7 +170,7 @@ class TestFetch7timer:
         mock_resp.json.return_value = {"product": "astro", "init": "BAD", "dataseries": []}
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             result = fetch_7timer(48.21, 16.37)
 
         # Bad init string → parse error → returns None
@@ -181,7 +181,7 @@ class TestFetch7timer:
         mock_resp.json.return_value = _make_7timer_response()
         mock_resp.raise_for_status = MagicMock()
 
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             df = fetch_7timer(48.21, 16.37)
 
         assert not df.empty
@@ -196,14 +196,14 @@ class TestMergeWeather:
         mock_resp = MagicMock()
         mock_resp.json.return_value = _make_om_response()
         mock_resp.raise_for_status = MagicMock()
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             return fetch_open_meteo(48.21, 16.37)
 
     def _make_7t_df(self) -> pd.DataFrame:
         mock_resp = MagicMock()
         mock_resp.json.return_value = _make_7timer_response()
         mock_resp.raise_for_status = MagicMock()
-        with patch("weather.requests.get", return_value=mock_resp):
+        with patch("seestar.weather.requests.get", return_value=mock_resp):
             return fetch_7timer(48.21, 16.37)
 
     def test_merge_with_7timer_adds_seeing_column(self):
@@ -249,7 +249,7 @@ class TestGetWeatherData:
             call_count[0] += 1
             return om_mock if "open-meteo" in url else st_mock
 
-        with patch("weather.requests.get", side_effect=side_effect):
+        with patch("seestar.weather.requests.get", side_effect=side_effect):
             df, ok = get_weather_data(48.21, 16.37)
 
         assert isinstance(df, pd.DataFrame)

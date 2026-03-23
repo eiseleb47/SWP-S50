@@ -25,7 +25,7 @@ except ImportError:
     ASTROPLAN_OK = False
     warnings.warn("astroplan not available; using fallback calculations")
 
-from catalog import DSO_CATALOG, get_skycoord
+from .catalog import DSO_CATALOG, get_skycoord
 
 
 class AstronomyCalculator:

@@ -47,3 +47,6 @@ htmlcov/
 
 # Logs
 *.log
+
+# Claude Code project settings
+.claude/

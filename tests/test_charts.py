@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 import pytest
 import pytz
 
-from charts import create_meteogram, create_observing_window_chart
+from seestar.charts import create_meteogram, create_observing_window_chart
 
 TZ = pytz.timezone("Europe/Vienna")
 

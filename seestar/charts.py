@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pytz
 
-from analysis import calculate_hourly_scores, score_label_color
+from .analysis import calculate_hourly_scores, score_label_color
 
 # ─── Colour palette ───────────────────────────────────────────────────────────
 BG      = "#0A0E1A"

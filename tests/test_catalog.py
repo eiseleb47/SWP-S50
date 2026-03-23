@@ -3,7 +3,7 @@
 import pytest
 from astropy.coordinates import SkyCoord
 
-from catalog import (
+from seestar.catalog import (
     DSO_CATALOG,
     TYPE_ICON,
     get_objects_by_filter,

@@ -20,17 +20,17 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from weather import get_weather_data
-from astronomy import AstronomyCalculator
-from analysis import (
+from seestar.weather import get_weather_data
+from seestar.astronomy import AstronomyCalculator
+from seestar.analysis import (
     calculate_hourly_scores,
     get_best_nights,
     get_night_scores,
     summarize_tonight,
     score_label_color,
 )
-from charts import create_meteogram, create_observing_window_chart
-from catalog import get_skycoord, type_icon, rating_stars
+from seestar.charts import create_meteogram, create_observing_window_chart
+from seestar.catalog import get_skycoord, type_icon, rating_stars
 
 # ─── Known locations ──────────────────────────────────────────────────────────
 

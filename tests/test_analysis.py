@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 import pytz
 
-from analysis import (
+from seestar.analysis import (
     _row_score,
     calculate_hourly_scores,
     get_best_nights,
