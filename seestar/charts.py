@@ -208,7 +208,7 @@ def create_meteogram(
             orientation="h", x=0, y=-0.05,
             font=dict(size=9), bgcolor="rgba(0,0,0,0)",
         ),
-        margin=dict(l=55, r=20, t=45, b=50),
+        margin=dict(l=55, r=20, t=60, b=50),
     )
     fig.update_xaxes(gridcolor=GRID, tickfont=dict(size=9), tickformat="%a\n%d %b")
     fig.update_yaxes(gridcolor=GRID, tickfont=dict(size=9), zeroline=False)
@@ -228,17 +228,19 @@ def create_meteogram(
         fig.layout.yaxis4.domain,
         fig.layout.yaxis5.domain,
     ]
+    _vs = 0.10  # vertical_spacing
     anns = list(fig.layout.annotations)
     for i, ann in enumerate(anns):
         if i == 0:
-            continue  # Row 1 title sits in the top margin — leave it
-        top_of_panel        = y_domains[i][1]
-        bottom_of_panel_above = y_domains[i - 1][0]
-        ann.update(
-            y=(top_of_panel + bottom_of_panel_above) / 2,
-            yanchor="middle",
-            yshift=0,
-        )
+            # Row 1 has no panel above — mirror the gap by placing the title
+            # the same half-spacing distance above its panel top.
+            ann.update(y=y_domains[0][1] + _vs / 2, yanchor="middle", yshift=0)
+        else:
+            ann.update(
+                y=(y_domains[i][1] + y_domains[i - 1][0]) / 2,
+                yanchor="middle",
+                yshift=0,
+            )
     fig.update_layout(annotations=anns)
 
     return fig
@@ -371,7 +373,7 @@ def create_observing_window_chart(
             orientation="h", x=0, y=-0.10,
             font=dict(size=9), bgcolor="rgba(0,0,0,0)",
         ),
-        margin=dict(l=55, r=60, t=50, b=60),
+        margin=dict(l=55, r=60, t=65, b=60),
     )
     fig.update_xaxes(gridcolor=GRID, tickformat="%H:%M", tickfont=dict(size=9))
     fig.update_yaxes(gridcolor=GRID, tickfont=dict(size=9), zeroline=False)
@@ -381,14 +383,18 @@ def create_observing_window_chart(
     # Centre the second subplot title in the gap between the two panels.
     # Subplot titles are always the first N annotations; skip any extras
     # (e.g. the twilight boundary labels added above).
+    _vs = 0.10
     y_domains = [fig.layout.yaxis.domain, fig.layout.yaxis2.domain]
     anns = list(fig.layout.annotations)
-    for i in range(1, len(y_domains)):
-        anns[i].update(
-            y=(y_domains[i][1] + y_domains[i - 1][0]) / 2,
-            yanchor="middle",
-            yshift=0,
-        )
+    for i in range(len(y_domains)):
+        if i == 0:
+            anns[i].update(y=y_domains[0][1] + _vs / 2, yanchor="middle", yshift=0)
+        else:
+            anns[i].update(
+                y=(y_domains[i][1] + y_domains[i - 1][0]) / 2,
+                yanchor="middle",
+                yshift=0,
+            )
     fig.update_layout(annotations=anns)
 
     return fig
