@@ -134,15 +134,26 @@ if not seventimer_ok:
 astro = AstronomyCalculator(lat=lat, lon=lon, timezone=tz_str)
 now   = datetime.now(tz)
 
-# If it's before noon, tonight is really last night → look back one day
-obs_date = (now - timedelta(days=1)).date() if now.hour < 12 else now.date()
+# Default observing date: if before noon treat it as the previous night
+default_obs_date = (now - timedelta(days=1)).date() if now.hour < 12 else now.date()
+
+# Persist the selected night across reruns; reset when location changes
+loc_key = f"{lat}_{lon}"
+if "selected_date" not in st.session_state or st.session_state.get("loc_key") != loc_key:
+    st.session_state["selected_date"] = default_obs_date
+    st.session_state["loc_key"] = loc_key
+
+selected_date = st.session_state["selected_date"]
 
 with st.spinner("Calculating astronomical events…"):
-    night_window = astro.get_night_window(obs_date)
-    moon_info    = astro.get_moon_info(now)
+    night_window = astro.get_night_window(selected_date)
+
+    # Moon info at midnight of the selected night
+    midnight = tz.localize(datetime(selected_date.year, selected_date.month, selected_date.day, 23, 0))
+    moon_info = astro.get_moon_info(midnight)
 
     # Night windows for all 7 forecast days (for meteogram shading)
-    night_windows_all = [astro.get_night_window(obs_date + timedelta(days=i)) for i in range(7)]
+    night_windows_all = [astro.get_night_window(default_obs_date + timedelta(days=i)) for i in range(7)]
 
     visible_objects = astro.get_visible_objects_tonight(
         night_window=night_window,
@@ -241,38 +252,48 @@ st.plotly_chart(fig_meteo, width="stretch")
 
 if not best_nights.empty:
     st.subheader("Nightly Overview")
+    st.caption("Click a night to update the sections below.")
     n_cols = min(len(best_nights), 7)
     night_cols = st.columns(n_cols)
     for i, (_, row) in enumerate(best_nights.head(7).iterrows()):
-        col   = night_cols[i]
-        color = row["color"]
-        nd    = row["night_date"]
-        day   = datetime(nd.year, nd.month, nd.day).strftime("%a")
+        col      = night_cols[i]
+        color    = row["color"]
+        nd       = row["night_date"]
+        day      = datetime(nd.year, nd.month, nd.day).strftime("%a")
         date_str = nd.strftime("%d %b")
+        is_selected = (nd == selected_date)
+        border = f"2px solid {color}" if not is_selected else f"3px solid #ffffff"
         with col:
             st.markdown(
-                f"""<div style="
-                    text-align: center;
-                    background: rgba(0,0,0,0.30);
-                    border: 1px solid {color};
-                    border-radius: 10px;
-                    padding: 10px 6px;
-                ">
-                <div style="font-weight:bold; font-size:1.0em;">{day}</div>
-                <div style="font-size:0.78em; color:#aaa;">{date_str}</div>
-                <div style="font-size:1.5em; font-weight:bold; color:{color}; line-height:1.2;">{row['avg_score']:.0f}</div>
-                <div style="font-size:0.72em; color:{color};">{row['label']}</div>
-                <div style="font-size:0.68em; color:#888;">{row['clear_hours']}h ≥ Good</div>
-                </div>""",
+                f'<div style="'
+                f'text-align:center;background:rgba(0,0,0,0.30);'
+                f'border:{border};border-radius:10px;padding:10px 6px;'
+                f'{"box-shadow:0 0 8px rgba(255,255,255,0.25);" if is_selected else ""}'
+                f'">'
+                f'<div style="font-weight:bold;font-size:1.0em;">{day}</div>'
+                f'<div style="font-size:0.78em;color:#aaa;">{date_str}</div>'
+                f'<div style="font-size:1.5em;font-weight:bold;color:{color};line-height:1.2;">{row["avg_score"]:.0f}</div>'
+                f'<div style="font-size:0.72em;color:{color};">{row["label"]}</div>'
+                f'<div style="font-size:0.68em;color:#888;">{row["clear_hours"]}h ≥ Good</div>'
+                f'</div>',
                 unsafe_allow_html=True,
             )
+            if st.button(
+                "★ Selected" if is_selected else "Select",
+                key=f"night_btn_{i}",
+                width="stretch",
+                disabled=is_selected,
+            ):
+                st.session_state["selected_date"] = nd
+                st.rerun()
 
 st.divider()
 
 
-# ─── Tonight's observing window ───────────────────────────────────────────────
+# ─── Observing window (selected night) ────────────────────────────────────────
 
-st.subheader("Tonight's Observing Window")
+selected_label = datetime(selected_date.year, selected_date.month, selected_date.day).strftime("%A, %d %b")
+st.subheader(f"Observing Window — {selected_label}")
 fig_window = create_observing_window_chart(
     night_df=night_df,
     night_window=night_window,
@@ -332,7 +353,7 @@ st.divider()
 # ─── Object recommendations ───────────────────────────────────────────────────
 
 total_targets = len(visible_objects) + len(planets)
-st.subheader(f"Recommended Objects Tonight  ({total_targets} above {min_altitude}°)")
+st.subheader(f"Recommended Objects — {selected_label}  ({total_targets} above {min_altitude}°)")
 
 # Planets row
 if planets:
