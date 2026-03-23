@@ -274,7 +274,7 @@ def create_observing_window_chart(
         rows=2, cols=1,
         shared_xaxes=True,
         row_heights=[0.52, 0.48],
-        vertical_spacing=0.05,
+        vertical_spacing=0.10,
         subplot_titles=["Observing Score", "Object Altitude (°)"],
     )
 
@@ -377,6 +377,19 @@ def create_observing_window_chart(
     fig.update_yaxes(gridcolor=GRID, tickfont=dict(size=9), zeroline=False)
     fig.update_yaxes(range=[0, 105], row=1, col=1)
     fig.update_yaxes(range=[0, 92],  row=2, col=1)
+
+    # Centre the second subplot title in the gap between the two panels.
+    # Subplot titles are always the first N annotations; skip any extras
+    # (e.g. the twilight boundary labels added above).
+    y_domains = [fig.layout.yaxis.domain, fig.layout.yaxis2.domain]
+    anns = list(fig.layout.annotations)
+    for i in range(1, len(y_domains)):
+        anns[i].update(
+            y=(y_domains[i][1] + y_domains[i - 1][0]) / 2,
+            yanchor="middle",
+            yshift=0,
+        )
+    fig.update_layout(annotations=anns)
 
     return fig
 
