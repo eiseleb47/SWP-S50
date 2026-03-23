@@ -42,6 +42,12 @@ No API keys are required. Weather data is fetched from [Open-Meteo](https://open
 streamlit run app.py
 ```
 
+Or use the included launcher script, which works from any directory without activating the virtual environment first:
+
+```bash
+~/Documents/Projects/weather_checker/run.sh
+```
+
 Then open [http://localhost:8501](http://localhost:8501) in your browser.
 
 Use the sidebar to change location, set the minimum object altitude, and toggle planet visibility. The data refreshes automatically every 30 minutes; click **Refresh Data** to force an immediate update.
