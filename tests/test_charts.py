@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 import pytest
 import pytz
 
-from seestar.charts import create_meteogram, create_observing_window_chart
+from seestar.charts import create_meteogram, create_observing_window_chart, dso_card_html
 
 TZ = pytz.timezone("Europe/Vienna")
 
@@ -229,3 +229,88 @@ class TestCreateObservingWindowChart:
         )
         # Score trace (1) + up to 6 object traces = 7 max
         assert len(fig.data) <= 8
+
+
+# ─── dso_card_html ────────────────────────────────────────────────────────────
+
+def _make_obj(**kwargs) -> dict:
+    """Minimal DSO object dict for card tests."""
+    base = {
+        "name": "Orion Nebula",
+        "messier_id": "M42",
+        "type": "Emission Nebula",
+        "constellation": "Orion",
+        "seestar_rating": 5,
+        "filter_type": "narrowband",
+        "max_altitude": 42.0,
+        "notes": "Showpiece nebula.",
+        "moon_interference": False,
+        "moon_separation": 45.0,
+        "window_start": None,
+        "window_end": None,
+    }
+    base.update(kwargs)
+    return base
+
+
+class TestDsoCardHtml:
+    def test_returns_string(self):
+        html = dso_card_html(_make_obj())
+        assert isinstance(html, str)
+
+    def test_no_blank_lines(self):
+        """HTML must never contain blank lines — CommonMark ends an HTML block at a blank line,
+        which would cause the notes div and closing tag to render as literal text."""
+        html = dso_card_html(_make_obj())
+        assert "\n\n" not in html
+
+    def test_no_newlines_at_all(self):
+        """The entire card is one unbroken string so st.markdown cannot split it."""
+        html = dso_card_html(_make_obj())
+        assert "\n" not in html
+
+    def test_notes_included(self):
+        html = dso_card_html(_make_obj(notes="Showpiece nebula."))
+        assert "Showpiece nebula." in html
+
+    def test_no_notes_no_notes_div(self):
+        html = dso_card_html(_make_obj(notes=""))
+        assert "font-style:italic" not in html
+
+    def test_window_shown_when_present(self):
+        start = TZ.localize(datetime(2024, 6, 15, 22, 0))
+        end   = TZ.localize(datetime(2024, 6, 16,  3, 0))
+        html  = dso_card_html(_make_obj(window_start=start, window_end=end))
+        assert "22:00" in html
+        assert "03:00" in html
+
+    def test_no_window_div_when_absent(self):
+        html = dso_card_html(_make_obj(window_start=None, window_end=None))
+        assert "Window:" not in html
+
+    def test_moon_warning_shown(self):
+        html = dso_card_html(_make_obj(moon_interference=True, moon_separation=12.0))
+        assert "Moon interference" in html
+        assert "12°" in html
+
+    def test_no_moon_warning_when_clear(self):
+        html = dso_card_html(_make_obj(moon_interference=False))
+        assert "Moon interference" not in html
+
+    def test_moon_interference_border_color(self):
+        with_moon    = dso_card_html(_make_obj(moon_interference=True,  moon_separation=10.0))
+        without_moon = dso_card_html(_make_obj(moon_interference=False))
+        assert "#CC6600" in with_moon
+        assert "#CC6600" not in without_moon
+
+    def test_narrowband_tag(self):
+        html = dso_card_html(_make_obj(filter_type="narrowband"))
+        assert "Narrowband" in html
+
+    def test_broadband_tag(self):
+        html = dso_card_html(_make_obj(filter_type="broadband"))
+        assert "Broadband" in html
+
+    def test_closes_outer_div(self):
+        html = dso_card_html(_make_obj())
+        assert html.endswith("</div>")

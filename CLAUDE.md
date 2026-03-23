@@ -124,7 +124,7 @@ Seestar rating (★–★★★★★), filter type, and observing notes.
 
 ---
 
-## Tests (124 total)
+## Tests (137 total)
 
 | Module | Tests | What is covered |
 |--------|-------|-----------------|
@@ -132,7 +132,7 @@ Seestar rating (★–★★★★★), filter type, and observing notes.
 | `test_weather.py` | 20 | Unit converters, mocked API responses, merge logic |
 | `test_analysis.py` | 35 | Score formula edge cases, label/color tiers, nightly summaries |
 | `test_astronomy.py` | 29 | Moon emoji, night window ordering, object altitude arrays |
-| `test_charts.py` | 14 | Plotly figure creation, dark theme, edge cases (empty data) |
+| `test_charts.py` | 27 | Plotly figure creation, dark theme, edge cases (empty data), DSO card HTML |
 
 CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull request.
 
@@ -153,6 +153,13 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 4. **`add_vline` with datetime annotation bug in Plotly 5.x** — Plotly's annotation position
    algorithm calls `float(sum(x))` over a mixed list of datetime + integer indices, causing
    `TypeError`. Replaced `add_vline` with `add_shape` + `add_annotation`.
+
+5. **Raw HTML leaking through in DSO object cards** — `st.markdown(unsafe_allow_html=True)` with
+   a multiline f-string containing conditional expressions that produce `""` creates blank lines in
+   the HTML. CommonMark ends an HTML block at the first blank line, so the notes `<div>` and
+   closing `</div>` rendered as literal text. Fixed by extracting `dso_card_html()` into
+   `charts.py` which builds HTML as a list of non-empty parts joined with `"".join()` — no blank
+   lines, no newlines at all. 13 regression tests added to `test_charts.py`.
 
 ---
 
@@ -175,3 +182,9 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 - Added `pythonpath = ["."]` to `pyproject.toml` so pytest resolves the `seestar` package from the project root
 - Wrote `README.md` in Catppuccin badge style matching the MTR repo
 - All 124 tests continue to pass after the restructure
+
+### Session 3 (2026-03-23)
+- Fixed bug 5: raw HTML leaking through in DSO object cards (CommonMark blank-line rule)
+- Extracted `dso_card_html()` into `seestar/charts.py`; `app.py` now calls it instead of building HTML inline
+- Added 13 `TestDsoCardHtml` regression tests to `test_charts.py`, including `test_no_newlines_at_all` and `test_no_blank_lines`
+- Total tests: 137 (up from 124)

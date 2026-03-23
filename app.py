@@ -29,8 +29,8 @@ from seestar.analysis import (
     summarize_tonight,
     score_label_color,
 )
-from seestar.charts import create_meteogram, create_observing_window_chart
-from seestar.catalog import get_skycoord, type_icon, rating_stars
+from seestar.charts import create_meteogram, create_observing_window_chart, dso_card_html
+from seestar.catalog import get_skycoord
 
 # ─── Known locations ──────────────────────────────────────────────────────────
 
@@ -377,41 +377,8 @@ if visible_objects:
         row_objs = filtered[row_start: row_start + 3]
         cols = st.columns(3)
         for col, obj in zip(cols, row_objs):
-            icon      = type_icon(obj["type"])
-            stars     = rating_stars(obj["seestar_rating"])
-            filter_tag = "🔵 Narrowband" if obj["filter_type"] == "narrowband" else "⚪ Broadband"
-            moon_warn = "⚠️ Moon interference" if obj.get("moon_interference") else ""
-
-            ws = obj.get("window_start")
-            we = obj.get("window_end")
-            window_str = (
-                f"{ws.strftime('%H:%M')}–{we.strftime('%H:%M')}"
-                if ws and we and hasattr(ws, "strftime") else ""
-            )
-
-            border = "#CC6600" if obj.get("moon_interference") else "#333844"
             with col:
-                st.markdown(
-                    f"""<div style="
-                        background: rgba(0,0,0,0.38);
-                        border: 1px solid {border};
-                        border-radius: 8px;
-                        padding: 12px;
-                        margin: 4px 0;
-                        min-height: 170px;
-                    ">
-                    <div style="font-size:1.05em; font-weight:bold;">{icon} {obj['name']}</div>
-                    <div style="font-size:0.78em; color:#888;">{obj.get('messier_id','')} · {obj['type']} · {obj['constellation']}</div>
-                    <div style="color:#FFD700; font-size:0.88em; margin-top:3px;">{stars}</div>
-                    <div style="font-size:0.78em; color:#ccc; margin-top:5px;">
-                        Max alt: <b>{obj['max_altitude']:.0f}°</b> &nbsp;|&nbsp; {filter_tag}
-                    </div>
-                    {"<div style='font-size:0.76em; color:#aaa;'>Window: " + window_str + "</div>" if window_str else ""}
-                    {"<div style='font-size:0.74em; color:#CC8800;'>" + moon_warn + f" ({obj['moon_separation']:.0f}°)" + "</div>" if moon_warn else ""}
-                    <div style="font-size:0.70em; color:#8aab; margin-top:6px; font-style:italic;">{obj['notes']}</div>
-                    </div>""",
-                    unsafe_allow_html=True,
-                )
+                st.markdown(dso_card_html(obj), unsafe_allow_html=True)
 
 elif not planets:
     st.info(

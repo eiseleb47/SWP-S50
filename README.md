@@ -80,7 +80,7 @@ pip install pytest pytest-cov
 pytest tests/
 ```
 
-The test suite has 124 tests across five modules and runs fully offline (all network calls are mocked).
+The test suite has 137 tests across five modules and runs fully offline (all network calls are mocked).
 
 | File | Tests | What is covered |
 |------|-------|-----------------|
@@ -88,7 +88,7 @@ The test suite has 124 tests across five modules and runs fully offline (all net
 | `test_weather.py` | 20 | Unit converters, mocked API responses, merge logic |
 | `test_analysis.py` | 35 | Score formula edge cases, label/colour tiers, nightly summaries |
 | `test_astronomy.py` | 29 | Moon emoji, night-window ordering, object altitude arrays |
-| `test_charts.py` | 14 | Plotly figure creation, dark theme, empty-data edge cases |
+| `test_charts.py` | 27 | Plotly figure creation, dark theme, empty-data edge cases, DSO card HTML |
 
 CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull request.
 

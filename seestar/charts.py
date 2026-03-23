@@ -15,6 +15,7 @@ from plotly.subplots import make_subplots
 import pytz
 
 from .analysis import calculate_hourly_scores, score_label_color
+from .catalog import type_icon, rating_stars
 
 # ─── Colour palette ───────────────────────────────────────────────────────────
 BG      = "#0A0E1A"
@@ -354,3 +355,43 @@ def create_observing_window_chart(
     fig.update_yaxes(range=[0, 92],  row=2, col=1)
 
     return fig
+
+
+# ─── DSO card HTML ────────────────────────────────────────────────────────────
+
+def dso_card_html(obj: dict) -> str:
+    """Return a single-line HTML string for a DSO object card.
+
+    Built by appending non-empty parts to a list and joining without newlines,
+    so CommonMark never sees a blank line that would end the HTML block.
+    """
+    icon       = type_icon(obj["type"])
+    stars      = rating_stars(obj["seestar_rating"])
+    filter_tag = "🔵 Narrowband" if obj.get("filter_type") == "narrowband" else "⚪ Broadband"
+    moon_warn  = "⚠️ Moon interference" if obj.get("moon_interference") else ""
+    border     = "#CC6600" if obj.get("moon_interference") else "#333844"
+
+    ws = obj.get("window_start")
+    we = obj.get("window_end")
+    window_str = (
+        f"{ws.strftime('%H:%M')}–{we.strftime('%H:%M')}"
+        if ws and we and hasattr(ws, "strftime") else ""
+    )
+
+    parts = [
+        f'<div style="background:rgba(0,0,0,0.38);border:1px solid {border};'
+        f'border-radius:8px;padding:12px;margin:4px 0;min-height:170px;">',
+        f'<div style="font-size:1.05em;font-weight:bold;">{icon} {obj["name"]}</div>',
+        f'<div style="font-size:0.78em;color:#888;">{obj.get("messier_id","")} · {obj["type"]} · {obj["constellation"]}</div>',
+        f'<div style="color:#FFD700;font-size:0.88em;margin-top:3px;">{stars}</div>',
+        f'<div style="font-size:0.78em;color:#ccc;margin-top:5px;">'
+        f'Max alt: <b>{obj["max_altitude"]:.0f}°</b> &nbsp;|&nbsp; {filter_tag}</div>',
+    ]
+    if window_str:
+        parts.append(f'<div style="font-size:0.76em;color:#aaa;">Window: {window_str}</div>')
+    if moon_warn:
+        parts.append(f'<div style="font-size:0.74em;color:#CC8800;">{moon_warn} ({obj["moon_separation"]:.0f}°)</div>')
+    if obj.get("notes"):
+        parts.append(f'<div style="font-size:0.70em;color:#8aab;margin-top:6px;font-style:italic;">{obj["notes"]}</div>')
+    parts.append("</div>")
+    return "".join(parts)
