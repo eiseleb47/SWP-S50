@@ -103,13 +103,17 @@ class AstronomyCalculator:
             illumination = 0.0
 
         try:
-            moonrise = self.observer.moon_rise_time(t, which="nearest")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                moonrise = self.observer.moon_rise_time(t, which="nearest")
             moonrise_local = moonrise.to_datetime(timezone=self.tz)
         except Exception:
             moonrise_local = None
 
         try:
-            moonset = self.observer.moon_set_time(t, which="nearest")
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                moonset = self.observer.moon_set_time(t, which="nearest")
             moonset_local = moonset.to_datetime(timezone=self.tz)
         except Exception:
             moonset_local = None
