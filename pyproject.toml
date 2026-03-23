@@ -1,0 +1,10 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"
+
+[tool.coverage.run]
+omit = [
+    "app.py",          # Streamlit entry point — not unit-testable
+    ".venv/*",
+    "tests/*",
+]
