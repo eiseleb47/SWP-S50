@@ -160,7 +160,8 @@ class TestFetch7timer:
         assert "cloud_cover_7t" in df.columns
 
     def test_returns_none_on_network_error(self):
-        with patch("seestar.weather.requests.get", side_effect=Exception("timeout")):
+        import requests as req
+        with patch("seestar.weather.requests.get", side_effect=req.exceptions.ConnectionError("timeout")):
             result = fetch_7timer(48.21, 16.37)
 
         assert result is None
