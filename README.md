@@ -1,13 +1,13 @@
-# Seestar S50 Observation Planner
+# SWP-S50 — Seestar Weather Planner
 
 <p align="center">
-  <a href="https://github.com/eiseleb47/weather-checker/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/eiseleb47/weather-checker/tests.yml?branch=main&label=tests&style=for-the-badge&labelColor=1e1e2e&color=a6e3a1&logo=github&logoColor=cdd6f4" alt="Tests"></a>
+  <a href="https://github.com/eiseleb47/SWP-S50/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/eiseleb47/SWP-S50/tests.yml?branch=main&label=tests&style=for-the-badge&labelColor=1e1e2e&color=a6e3a1&logo=github&logoColor=cdd6f4" alt="Tests"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.11%2B-89b4fa?style=for-the-badge&labelColor=1e1e2e&logo=python&logoColor=cdd6f4" alt="Python 3.11+"></a>
-  <a href="https://github.com/eiseleb47/weather-checker/commits/main"><img src="https://img.shields.io/github/last-commit/eiseleb47/weather-checker?style=for-the-badge&labelColor=1e1e2e&color=cba6f7&logo=git&logoColor=cdd6f4" alt="Last Commit"></a>
-  <a href="https://github.com/eiseleb47/weather-checker"><img src="https://img.shields.io/badge/platform-linux-fab387?style=for-the-badge&labelColor=1e1e2e&logo=linux&logoColor=cdd6f4" alt="Platform"></a>
+  <a href="https://github.com/eiseleb47/SWP-S50/commits/main"><img src="https://img.shields.io/github/last-commit/eiseleb47/SWP-S50?style=for-the-badge&labelColor=1e1e2e&color=cba6f7&logo=git&logoColor=cdd6f4" alt="Last Commit"></a>
+  <a href="https://github.com/eiseleb47/SWP-S50"><img src="https://img.shields.io/badge/platform-linux-fab387?style=for-the-badge&labelColor=1e1e2e&logo=linux&logoColor=cdd6f4" alt="Platform"></a>
 </p>
 
-A Streamlit weather dashboard tailored for planning observing sessions with the **ZWO Seestar S50** smart telescope. It combines a Windy-style 7-day meteogram with per-hour observing quality scores, astronomical twilight and moon calculations, and a curated catalogue of 38 deep-sky objects rated for the Seestar's dual-band narrowband filter.
+A Streamlit weather dashboard tailored for planning observing sessions with the **ZWO Seestar S50** smart telescope. SWP-S50 combines a Windy-style 7-day meteogram with per-hour observing quality scores, astronomical twilight and moon calculations, and a curated catalogue of 38 deep-sky objects rated for the Seestar's dual-band narrowband filter.
 
 Default location is **Vienna, Austria**. Any location can be entered via lat/lon or selected from a preset list.
 
@@ -27,8 +27,8 @@ Python 3.11 or newer. All dependencies are pure-Python and install via pip.
 ## Installation
 
 ```bash
-git clone https://github.com/eiseleb47/weather-checker.git
-cd weather-checker
+git clone https://github.com/eiseleb47/SWP-S50.git
+cd SWP-S50
 python -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -95,7 +95,7 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 ## Repository Layout
 
 ```
-weather-checker/
+SWP-S50/
 ├── app.py                        # Streamlit entry point
 ├── seestar/                      # Core package
 │   ├── __init__.py

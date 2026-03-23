@@ -1,4 +1,4 @@
-# Seestar S50 Observation Planner — Development Log
+# SWP-S50 — Seestar Weather Planner — Development Log
 
 ## Project overview
 
@@ -27,7 +27,7 @@ Other Austrian locations and fully custom coordinates are supported.
 ## Architecture
 
 ```
-weather-checker/
+SWP-S50/
 ├── app.py                        – Streamlit UI (entry point)
 ├── seestar/                      – Core package
 │   ├── __init__.py
