@@ -384,15 +384,16 @@ if planets:
 if visible_objects:
     st.markdown("**Deep Sky Objects**")
 
-    # Controls: filter by type
+    # Controls: filter by type — "All" shown by default; click a type to filter to it
     types_available = sorted({o["type"] for o in visible_objects})
-    filter_type = st.multiselect(
+    type_options = ["All"] + types_available
+    selected_type = st.radio(
         "Filter by type",
-        options=types_available,
-        default=types_available,
+        options=type_options,
+        horizontal=True,
         label_visibility="collapsed",
     )
-    filtered = [o for o in visible_objects if o["type"] in filter_type]
+    filtered = visible_objects if selected_type == "All" else [o for o in visible_objects if o["type"] == selected_type]
 
     for row_start in range(0, min(len(filtered), 15), 3):
         row_objs = filtered[row_start: row_start + 3]
