@@ -67,6 +67,13 @@ def create_meteogram(
         shared_xaxes=True,
         row_heights=[0.10, 0.26, 0.22, 0.16, 0.26],
         vertical_spacing=0.10,
+        subplot_titles=[
+            "Observing Quality",
+            "Cloud Cover (%)",
+            "Temperature (°C)",
+            "Precipitation (mm)",
+            "Wind (km/h)",
+        ],
     )
 
     # ── Panel 1: observing quality bar ────────────────────────────────────────
@@ -210,27 +217,29 @@ def create_meteogram(
     fig.update_yaxes(showticklabels=False, showgrid=False, range=[0, 1], row=1, col=1)
     fig.update_yaxes(range=[0, 100], row=2, col=1)
 
-    # Add panel titles manually, anchored to each subplot's own domain.
-    # yref="yN domain" + y=1.0 + yanchor="bottom" places the label just above
-    # the top edge of its own panel — safely inside the gap, never overlapping
-    # the panel above or below.
-    panel_titles = [
-        ("y",  "Observing Quality"),
-        ("y2", "Cloud Cover (%)"),
-        ("y3", "Temperature (°C)"),
-        ("y4", "Precipitation (mm)"),
-        ("y5", "Wind (km/h)"),
+    # Reposition subplot titles to the vertical midpoint of the gap above each
+    # panel. Plotly's default places them at domain[1] (top edge of the panel);
+    # this causes them to clip into adjacent plot areas. Reading the actual
+    # computed domains and centering each annotation in its gap fixes it cleanly.
+    y_domains = [
+        fig.layout.yaxis.domain,
+        fig.layout.yaxis2.domain,
+        fig.layout.yaxis3.domain,
+        fig.layout.yaxis4.domain,
+        fig.layout.yaxis5.domain,
     ]
-    for yaxis, label in panel_titles:
-        fig.add_annotation(
-            x=0, y=1.0,
-            xref="paper", yref=f"{yaxis} domain",
-            text=label,
-            showarrow=False,
-            xanchor="left", yanchor="bottom",
-            font=dict(size=11, color="rgba(200,205,230,0.85)"),
-            yshift=4,
+    anns = list(fig.layout.annotations)
+    for i, ann in enumerate(anns):
+        if i == 0:
+            continue  # Row 1 title sits in the top margin — leave it
+        top_of_panel        = y_domains[i][1]
+        bottom_of_panel_above = y_domains[i - 1][0]
+        ann.update(
+            y=(top_of_panel + bottom_of_panel_above) / 2,
+            yanchor="middle",
+            yshift=0,
         )
+    fig.update_layout(annotations=anns)
 
     return fig
 
