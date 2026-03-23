@@ -82,6 +82,13 @@ with st.sidebar:
     show_planets = st.checkbox("Include planets", value=True)
 
     st.divider()
+    st.caption(
+        "Your coordinates are sent to [Open-Meteo](https://open-meteo.com) and "
+        "[7timer](https://7timer.info) to retrieve weather data. "
+        "No personal data is stored by this app."
+    )
+
+    st.divider()
     if st.button("🔄 Refresh Data", width="stretch"):
         st.cache_data.clear()
         st.rerun()

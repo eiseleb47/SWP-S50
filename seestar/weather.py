@@ -15,7 +15,7 @@ import requests
 
 # ─── API endpoints ────────────────────────────────────────────────────────────
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
-SEVENTIMER_URL = "http://www.7timer.info/bin/api.pl"
+SEVENTIMER_URL = "https://www.7timer.info/bin/api.pl"
 
 # 7timer cloud cover midpoints (scale 1-9)
 _7T_CLOUD_MIDPOINTS = {1: 3, 2: 12, 3: 25, 4: 37, 5: 50, 6: 62, 7: 75, 8: 87, 9: 97}
@@ -118,8 +118,17 @@ def fetch_7timer(lat: float, lon: float) -> Optional[pd.DataFrame]:
         resp = requests.get(SEVENTIMER_URL, params=params, timeout=10)
         resp.raise_for_status()
         data = resp.json()
-    except Exception as exc:
-        warnings.warn(f"7timer unavailable: {exc}")
+    except requests.exceptions.Timeout as exc:
+        warnings.warn(f"7timer timed out: {exc}")
+        return None
+    except requests.exceptions.ConnectionError as exc:
+        warnings.warn(f"7timer connection error: {exc}")
+        return None
+    except requests.exceptions.HTTPError as exc:
+        warnings.warn(f"7timer HTTP error: {exc}")
+        return None
+    except ValueError as exc:
+        warnings.warn(f"7timer returned invalid JSON: {exc}")
         return None
 
     try:
