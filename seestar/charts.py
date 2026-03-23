@@ -202,7 +202,7 @@ def create_meteogram(
         paper_bgcolor=BG,
         plot_bgcolor=PANEL,
         font=dict(color=TEXT, family="monospace"),
-        height=680,
+        height=760,
         hovermode="x unified",
         legend=dict(
             orientation="h", x=0, y=-0.05,
@@ -216,6 +216,11 @@ def create_meteogram(
     # Panel-specific y-axes
     fig.update_yaxes(showticklabels=False, showgrid=False, range=[0, 1], row=1, col=1)
     fig.update_yaxes(range=[0, 100], row=2, col=1)
+
+    # Nudge subplot titles downward so they sit in the middle of the gap
+    # rather than at the boundary between panels.
+    for annotation in fig.layout.annotations:
+        annotation.update(yshift=-12)
 
     return fig
 
