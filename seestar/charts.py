@@ -67,13 +67,6 @@ def create_meteogram(
         shared_xaxes=True,
         row_heights=[0.10, 0.26, 0.22, 0.16, 0.26],
         vertical_spacing=0.10,
-        subplot_titles=[
-            "Observing Quality",
-            "Cloud Cover (%)",
-            "Temperature (°C)",
-            "Precipitation (mm)",
-            "Wind (km/h)",
-        ],
     )
 
     # ── Panel 1: observing quality bar ────────────────────────────────────────
@@ -217,10 +210,27 @@ def create_meteogram(
     fig.update_yaxes(showticklabels=False, showgrid=False, range=[0, 1], row=1, col=1)
     fig.update_yaxes(range=[0, 100], row=2, col=1)
 
-    # Nudge subplot titles downward so they sit in the middle of the gap
-    # rather than at the boundary between panels.
-    for annotation in fig.layout.annotations:
-        annotation.update(yshift=-12)
+    # Add panel titles manually, anchored to each subplot's own domain.
+    # yref="yN domain" + y=1.0 + yanchor="bottom" places the label just above
+    # the top edge of its own panel — safely inside the gap, never overlapping
+    # the panel above or below.
+    panel_titles = [
+        ("y",  "Observing Quality"),
+        ("y2", "Cloud Cover (%)"),
+        ("y3", "Temperature (°C)"),
+        ("y4", "Precipitation (mm)"),
+        ("y5", "Wind (km/h)"),
+    ]
+    for yaxis, label in panel_titles:
+        fig.add_annotation(
+            x=0, y=1.0,
+            xref="paper", yref=f"{yaxis} domain",
+            text=label,
+            showarrow=False,
+            xanchor="left", yanchor="bottom",
+            font=dict(size=11, color="rgba(200,205,230,0.85)"),
+            yshift=4,
+        )
 
     return fig
 
