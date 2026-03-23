@@ -276,7 +276,7 @@ def create_observing_window_chart(
         rows=2, cols=1,
         shared_xaxes=True,
         row_heights=[0.52, 0.48],
-        vertical_spacing=0.10,
+        vertical_spacing=0.15,
         subplot_titles=["Observing Score", "Object Altitude (°)"],
     )
 
@@ -367,7 +367,7 @@ def create_observing_window_chart(
         paper_bgcolor=BG,
         plot_bgcolor=PANEL,
         font=dict(color=TEXT, family="monospace"),
-        height=480,
+        height=540,
         hovermode="x unified",
         legend=dict(
             orientation="h", x=0, y=-0.10,
@@ -383,7 +383,7 @@ def create_observing_window_chart(
     # Centre the second subplot title in the gap between the two panels.
     # Subplot titles are always the first N annotations; skip any extras
     # (e.g. the twilight boundary labels added above).
-    _vs = 0.10
+    _vs = 0.15
     y_domains = [fig.layout.yaxis.domain, fig.layout.yaxis2.domain]
     anns = list(fig.layout.annotations)
     for i in range(len(y_domains)):
