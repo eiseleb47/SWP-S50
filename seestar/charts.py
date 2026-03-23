@@ -66,7 +66,7 @@ def create_meteogram(
         rows=5, cols=1,
         shared_xaxes=True,
         row_heights=[0.10, 0.26, 0.22, 0.16, 0.26],
-        vertical_spacing=0.022,
+        vertical_spacing=0.06,
         subplot_titles=[
             "Observing Quality",
             "Cloud Cover (%)",
