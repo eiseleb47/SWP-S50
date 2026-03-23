@@ -191,24 +191,24 @@ def summarize_tonight(
 
     if avg_score >= 60:
         lines.append(
-            f"Conditions look **{label.lower()}** for your Seestar S50 tonight."
+            f"Conditions look <strong>{label.lower()}</strong> for your Seestar S50 tonight."
         )
     elif avg_score >= 40:
         lines.append(
-            "Conditions are **marginal** tonight. Observing may be possible during clearer periods."
+            "Conditions are <strong>marginal</strong> tonight. Observing may be possible during clearer periods."
         )
     else:
         lines.append(
-            "Tonight's conditions are **not favorable** for observing."
+            "Tonight's conditions are <strong>not favorable</strong> for observing."
         )
 
     if clear_hours > 0:
         lines.append(
             f"~{clear_hours} hour(s) with score ≥ 60 (Good or better). "
-            f"Best hour around **{best_hour}**."
+            f"Best hour around <strong>{best_hour}</strong>."
         )
 
-    moon_line = f"{moon_emoji} Moon is **{moon_pct}%** illuminated. "
+    moon_line = f"{moon_emoji} Moon is <strong>{moon_pct}%</strong> illuminated. "
     if moon_pct < 25:
         moon_line += "Ideal for dark-sky targets (galaxies, faint nebulae)."
     elif moon_pct < 60:
@@ -221,8 +221,8 @@ def summarize_tonight(
     astro_mor = night_window.get("astro_morning")
     if astro_eve and astro_mor:
         lines.append(
-            f"Astronomical dark: **{astro_eve.strftime('%H:%M')}** – "
-            f"**{astro_mor.strftime('%H:%M')}** local time."
+            f"Astronomical dark: <strong>{astro_eve.strftime('%H:%M')}</strong> – "
+            f"<strong>{astro_mor.strftime('%H:%M')}</strong> local time."
         )
 
     if not seventimer_ok:
