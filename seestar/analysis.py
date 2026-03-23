@@ -237,5 +237,5 @@ def summarize_tonight(
         "max_score":     round(max_score, 1),
         "best_hour":     best_hour,
         "clear_hours":   clear_hours,
-        "summary_text":  "  \n".join(lines),
+        "summary_text":  "<br>".join(lines),
     }
