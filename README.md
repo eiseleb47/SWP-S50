@@ -38,19 +38,43 @@ No API keys are required. Weather data is fetched from [Open-Meteo](https://open
 
 ## Usage
 
+### Web app (browser)
+
 ```bash
 streamlit run app.py
+# then open http://localhost:8501
 ```
 
-Or use the included launcher script, which works from any directory without activating the virtual environment first:
+Or use the included `run.sh` wrapper, which works from any directory without activating the venv.
+
+Use the sidebar to change location, set the minimum object altitude, and toggle planet visibility. The selected location is saved to the URL as query parameters so you can bookmark it. Data refreshes automatically every 30 minutes; click **Refresh Data** to force an update.
+
+### Desktop GUI
+
+Run it like any native application — no browser needed.
+
+**One-time install:**
 
 ```bash
-~/Documents/Projects/weather_checker/run.sh
+./install-desktop.sh
 ```
 
-Then open [http://localhost:8501](http://localhost:8501) in your browser.
+This installs PySide6 into the venv (one-time ~250 MB download), writes a `.desktop` entry, and registers the icon so the app appears in your application launcher as **Seestar S50 Planner**.
 
-Use the sidebar to change location, set the minimum object altitude, and toggle planet visibility. The data refreshes automatically every 30 minutes; click **Refresh Data** to force an immediate update.
+**Launch:**
+
+```bash
+./launch.sh          # from the terminal
+# or search "Seestar" in your application menu / dock
+```
+
+The desktop window starts Streamlit automatically on a free local port and navigates to it once ready. Closing the window also stops the background server.
+
+**Uninstall desktop integration** (project files are kept):
+
+```bash
+./uninstall-desktop.sh
+```
 
 ## Observing Score
 
@@ -103,6 +127,12 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 ```
 SWP-S50/
 ├── app.py                        # Streamlit entry point
+├── gui.py                        # Desktop GUI launcher (PySide6 + QtWebEngine)
+├── launch.sh                     # Shell wrapper — runs gui.py via the venv
+├── install-desktop.sh            # Installs .desktop entry + icon
+├── uninstall-desktop.sh          # Removes .desktop entry + icon
+├── assets/
+│   └── icon.svg                  # App icon
 ├── seestar/                      # Core package
 │   ├── __init__.py
 │   ├── catalog.py                # 38-object DSO catalogue for the Seestar S50

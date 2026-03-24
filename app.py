@@ -53,28 +53,46 @@ def _load_weather(lat: float, lon: float):
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 
+# Restore location from URL query params (bookmarkable / persists on refresh)
+_qp = st.query_params
+_saved_loc = _qp.get("loc", "Vienna")
+_loc_names = list(LOCATIONS.keys())
+_default_idx = _loc_names.index(_saved_loc) if _saved_loc in _loc_names else _loc_names.index("Custom")
+
 with st.sidebar:
     st.markdown("## 🔭 Seestar S50")
     st.markdown("**Observation Planner**")
     st.divider()
 
-    location_name = st.selectbox("Location", list(LOCATIONS.keys()), index=0)
+    location_name = st.selectbox("Location", _loc_names, index=_default_idx)
 
     if location_name == "Custom":
+        _default_lat = float(_qp.get("lat", 48.2082))
+        _default_lon = float(_qp.get("lon", 16.3738))
+        _default_tz  = _qp.get("tz", "Europe/Vienna")
         lat = st.number_input(
-            "Latitude (°N)", value=48.2082,
+            "Latitude (°N)", value=_default_lat,
             min_value=-90.0, max_value=90.0, step=0.0001, format="%.4f",
         )
         lon = st.number_input(
-            "Longitude (°E)", value=16.3738,
+            "Longitude (°E)", value=_default_lon,
             min_value=-180.0, max_value=180.0, step=0.0001, format="%.4f",
         )
-        tz_str = st.text_input("Timezone (IANA)", value="Europe/Vienna")
+        tz_str = st.text_input("Timezone (IANA)", value=_default_tz)
     else:
         loc    = LOCATIONS[location_name]
         lat    = loc["lat"]
         lon    = loc["lon"]
         tz_str = loc["timezone"]
+
+    # Persist current location to URL query params (bookmarkable)
+    if location_name == "Custom":
+        st.query_params.update({"loc": "Custom", "lat": str(lat), "lon": str(lon), "tz": tz_str})
+    else:
+        st.query_params["loc"] = location_name
+        for _k in ["lat", "lon", "tz"]:
+            if _k in st.query_params:
+                del st.query_params[_k]
 
     st.divider()
     min_altitude = st.slider("Min. object altitude (°)", 15, 45, 35, step=5,

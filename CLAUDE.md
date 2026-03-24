@@ -8,12 +8,24 @@ to help plan observing sessions with the **ZWO Seestar S50** smart telescope.
 Default location: **Vienna, Austria** (48.2082°N, 16.3738°E).
 Other Austrian locations and fully custom coordinates are supported.
 
-**Run the app**
+**Run the web app**
 
 ```bash
 # From the project root
 .venv/bin/streamlit run app.py
 # Then open http://localhost:8501
+```
+
+**Run the desktop GUI**
+
+```bash
+# One-time install (installs PySide6, writes .desktop entry + icon)
+./install-desktop.sh
+
+# Launch directly
+./launch.sh
+
+# Or from the application menu: search "Seestar S50 Planner"
 ```
 
 **Run tests**
@@ -29,6 +41,12 @@ Other Austrian locations and fully custom coordinates are supported.
 ```
 SWP-S50/
 ├── app.py                        – Streamlit UI (entry point)
+├── gui.py                        – Desktop GUI launcher (PySide6 + QtWebEngine)
+├── launch.sh                     – Shell wrapper; runs gui.py via the venv
+├── install-desktop.sh            – Installs .desktop entry + icon for the app launcher
+├── uninstall-desktop.sh          – Removes the .desktop entry and icon
+├── assets/
+│   └── icon.svg                  – App icon (telescope + star, dark navy background)
 ├── seestar/                      – Core package
 │   ├── __init__.py
 │   ├── catalog.py                – 38 curated Seestar S50 DSO targets
@@ -36,7 +54,7 @@ SWP-S50/
 │   ├── astronomy.py              – Twilight, moon phase, object visibility (astroplan/astropy)
 │   ├── analysis.py               – Observing quality score (0-100) and nightly summaries
 │   └── charts.py                 – Plotly dark-theme meteogram and observing-window charts
-├── tests/                        – pytest unit tests (124 tests)
+├── tests/                        – pytest unit tests (137 tests)
 ├── .github/
 │   └── workflows/tests.yml       – CI: pytest on Python 3.11 and 3.12
 ├── pyproject.toml                – pytest config and coverage settings
@@ -188,3 +206,9 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 - Extracted `dso_card_html()` into `seestar/charts.py`; `app.py` now calls it instead of building HTML inline
 - Added 13 `TestDsoCardHtml` regression tests to `test_charts.py`, including `test_no_newlines_at_all` and `test_no_blank_lines`
 - Total tests: 137 (up from 124)
+
+### Session 4 (2026-03-24)
+- Added location persistence via URL query params (`?loc=`, `?lat=`, `?lon=`, `?tz=`) — bookmarkable, survives page refresh, no extra dependencies
+- Added desktop GUI launcher (`gui.py`) using PySide6 + QtWebEngine: starts Streamlit on a free local port and displays it in a native Qt window with an animated loading splash
+- Added `launch.sh` shell wrapper, `assets/icon.svg` telescope icon, `install-desktop.sh`, and `uninstall-desktop.sh`
+- Added `PySide6>=6.6.0` to `requirements.txt`; no system packages required — PySide6 ships Qt WebEngine as a pip wheel
