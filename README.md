@@ -11,6 +11,8 @@ A Streamlit weather dashboard tailored for planning observing sessions with the 
 
 Default location is **Vienna, Austria**. Any location can be entered via lat/lon or selected from a preset list.
 
+![Screenshot of the GUI when first opening the APP](/assets/Seestar_GUI.png)
+
 ## Features
 
 - **Windy-style meteogram** — stacked cloud cover (high / mid / low), temperature, dew point, precipitation, and wind speed across 7 days, with astronomical night shading on every panel
