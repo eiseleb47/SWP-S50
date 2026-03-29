@@ -291,7 +291,25 @@ class TestDsoCardHtml:
     def test_moon_warning_shown(self):
         html = dso_card_html(_make_obj(moon_interference=True, moon_separation=12.0))
         assert "Moon interference" in html
-        assert "12°" in html
+        assert "12°" in html  # shown in the separation line
+
+    def test_moon_separation_shown_always_when_available(self):
+        # Even without interference flag, separation is displayed when < 180°
+        html = dso_card_html(_make_obj(moon_interference=False, moon_separation=75.0))
+        assert "75°" in html
+
+    def test_moon_separation_hidden_when_not_computed(self):
+        # 180.0 is the sentinel meaning "not computed"
+        html = dso_card_html(_make_obj(moon_interference=False, moon_separation=180.0))
+        assert "180°" not in html
+
+    def test_effective_rating_shown_when_differs(self):
+        html = dso_card_html(_make_obj(seestar_rating=5, effective_rating=3))
+        assert "catalog:" in html
+
+    def test_effective_rating_no_catalog_note_when_same(self):
+        html = dso_card_html(_make_obj(seestar_rating=4, effective_rating=4))
+        assert "catalog:" not in html
 
     def test_no_moon_warning_when_clear(self):
         html = dso_card_html(_make_obj(moon_interference=False))

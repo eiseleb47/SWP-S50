@@ -408,32 +408,53 @@ def dso_card_html(obj: dict) -> str:
     Built by appending non-empty parts to a list and joining without newlines,
     so CommonMark never sees a blank line that would end the HTML block.
     """
-    icon       = type_icon(obj["type"])
-    stars      = rating_stars(obj["seestar_rating"])
-    filter_tag = "🔵 Narrowband" if obj.get("filter_type") == "narrowband" else "⚪ Broadband"
-    moon_warn  = "⚠️ Moon interference" if obj.get("moon_interference") else ""
-    border     = "#CC6600" if obj.get("moon_interference") else "#333844"
+    icon        = type_icon(obj["type"])
+    base_rating = obj["seestar_rating"]
+    eff_rating  = obj.get("effective_rating", base_rating)
+    stars       = rating_stars(eff_rating)
+    filter_tag  = "🔵 Narrowband" if obj.get("filter_type") == "narrowband" else "⚪ Broadband"
+    moon_warn   = "⚠️ Moon interference" if obj.get("moon_interference") else ""
+    border      = "#CC6600" if obj.get("moon_interference") else "#333844"
 
     ws = obj.get("window_start")
     we = obj.get("window_end")
-    window_str = (
-        f"{ws.strftime('%H:%M')}–{we.strftime('%H:%M')}"
-        if ws and we and hasattr(ws, "strftime") else ""
-    )
+    if ws and we and hasattr(ws, "strftime"):
+        dur_min = int((we - ws).total_seconds() / 60)
+        if dur_min == 0:
+            window_str = f"~{ws.strftime('%H:%M')} (< 15 min)"
+        else:
+            h, m = divmod(dur_min, 60)
+            dur_label = f"{h}h {m}m" if h and m else (f"{h}h" if h else f"{m}m")
+            window_str = f"{ws.strftime('%H:%M')}–{we.strftime('%H:%M')}  ·  {dur_label}"
+    else:
+        window_str = ""
+
+    moon_sep = obj.get("moon_separation", 180.0)
 
     parts = [
         f'<div style="background:rgba(0,0,0,0.38);border:1px solid {border};'
         f'border-radius:8px;padding:12px;margin:4px 0;min-height:170px;">',
         f'<div style="font-size:1.05em;font-weight:bold;">{icon} {obj["name"]}</div>',
         f'<div style="font-size:0.78em;color:#888;">{obj.get("messier_id","")} · {obj["type"]} · {obj["constellation"]}</div>',
-        f'<div style="color:#FFD700;font-size:0.88em;margin-top:3px;">{stars}</div>',
-        f'<div style="font-size:0.78em;color:#ccc;margin-top:5px;">'
-        f'Max alt: <b>{obj["max_altitude"]:.0f}°</b> &nbsp;|&nbsp; {filter_tag}</div>',
     ]
+    if eff_rating != base_rating:
+        parts.append(
+            f'<div style="color:#FFD700;font-size:0.88em;margin-top:3px;">{stars}'
+            f' <span style="color:#666;font-size:0.75em;">(catalog: {rating_stars(base_rating)})</span></div>'
+        )
+    else:
+        parts.append(f'<div style="color:#FFD700;font-size:0.88em;margin-top:3px;">{stars}</div>')
+    parts.append(
+        f'<div style="font-size:0.78em;color:#ccc;margin-top:5px;">'
+        f'Max alt: <b>{obj["max_altitude"]:.0f}°</b> &nbsp;|&nbsp; {filter_tag}</div>'
+    )
     if window_str:
         parts.append(f'<div style="font-size:0.76em;color:#aaa;">Window: {window_str}</div>')
+    if moon_sep < 180.0:
+        sep_color = "#CC8800" if obj.get("moon_interference") else "#8888aa"
+        parts.append(f'<div style="font-size:0.74em;color:{sep_color};">🌙 {moon_sep:.0f}° from moon</div>')
     if moon_warn:
-        parts.append(f'<div style="font-size:0.74em;color:#CC8800;">{moon_warn} ({obj["moon_separation"]:.0f}°)</div>')
+        parts.append(f'<div style="font-size:0.74em;color:#CC8800;">{moon_warn}</div>')
     if obj.get("notes"):
         parts.append(f'<div style="font-size:0.70em;color:#8aab;margin-top:6px;font-style:italic;">{obj["notes"]}</div>')
     parts.append("</div>")

@@ -160,17 +160,19 @@ class AstronomyCalculator:
     ) -> list:
         """
         Return catalog objects visible tonight (altitude >= min_altitude during
-        astronomical night), sorted by seestar_rating DESC, max_altitude DESC.
+        astronomical night), sorted by effective_rating DESC, max_altitude DESC.
         Each dict is augmented with max_altitude, window_start/end, moon_separation,
-        moon_interference.
+        moon_interference, and effective_rating.
         """
         t_start = night_window.get("astro_evening")
         t_end = night_window.get("astro_morning")
         if t_start is None or t_end is None:
             return []
 
-        n_hours = max(2, int((t_end - t_start).total_seconds() / 3600) + 1)
-        times_local = pd.date_range(t_start, periods=n_hours, freq="1h")
+        # 15-minute grid for accurate window start/end times
+        times_local = pd.date_range(t_start, t_end, freq="15min")
+        if len(times_local) < 2:
+            times_local = pd.date_range(t_start, periods=2, freq="15min")
         times_utc = times_local.tz_convert("UTC")
 
         moon_illum = moon_info.get("illumination", 0.0) if moon_info else 0.0
@@ -203,10 +205,27 @@ class AstronomyCalculator:
                             self.location,
                         )
                         moon_sep = float(coord.separation(moon_coord.icrs).deg)
-                        threshold = 15 if obj["filter_type"] == "narrowband" else 30
-                        moon_interference = moon_sep < threshold
+                        filter_type = obj.get("filter_type", "broadband")
+                        if filter_type == "broadband":
+                            # Threshold scales with illumination: 15° (new) → 60° (full)
+                            sep_threshold = 15.0 + moon_illum * 45.0
+                        else:
+                            sep_threshold = 15.0
+                        moon_interference = moon_sep < sep_threshold
                     except Exception:
                         pass
+
+                window_minutes = (last_i - first_i) * 15  # 15-min grid
+
+                eff = _effective_rating(
+                    base=obj["seestar_rating"],
+                    filter_type=obj.get("filter_type", "broadband"),
+                    size_arcmin=float(obj.get("size_arcmin", 20)),
+                    moon_illum=moon_illum,
+                    moon_sep=moon_sep,
+                    obj_type=obj.get("type", ""),
+                    window_minutes=window_minutes,
+                )
 
                 aug = dict(obj)
                 aug["max_altitude"] = round(max_alt, 1)
@@ -214,11 +233,12 @@ class AstronomyCalculator:
                 aug["window_end"] = times_local[last_i]
                 aug["moon_separation"] = round(moon_sep, 1)
                 aug["moon_interference"] = moon_interference
+                aug["effective_rating"] = eff
                 visible.append(aug)
             except Exception:
                 continue
 
-        visible.sort(key=lambda o: (-o["seestar_rating"], -o["max_altitude"]))
+        visible.sort(key=lambda o: (-o["effective_rating"], -o["max_altitude"]))
         return visible
 
     def get_planet_visibility(self, night_window: dict) -> list:
@@ -293,6 +313,73 @@ class AstronomyCalculator:
             "altitude": 0.0,
             "azimuth": 0.0,
         }
+
+
+def _effective_rating(
+    base: int,
+    filter_type: str,
+    size_arcmin: float,
+    moon_illum: float,
+    moon_sep: float,
+    obj_type: str = "",
+    window_minutes: float = 999.0,
+) -> int:
+    """Condition-adjusted Seestar rating (1–5).
+
+    Reduces the catalog base rating based on:
+    - Moon illumination: broadband targets lose up to 2 stars under a bright moon;
+      the Seestar's dual-band narrowband filter suppresses moon glow so narrowband
+      targets are nearly immune.
+    - Moon angular separation: closer proximity means more sky-glow contamination;
+      the required separation scales with moon illumination (15° new → 60° full).
+    - FOV size fit (Seestar ≈ 90′ × 66′): objects that are essentially stellar
+      (< 2′) or much larger than the frame (> 150′) lose 1 star.
+    - Observable window duration: clusters are dense/bright enough to yield a good
+      result in 15 min; nebulae and galaxies need 30–60+ min for adequate SNR.
+    """
+    penalty = 0
+
+    # Moon illumination penalty
+    if filter_type == "broadband":
+        if moon_illum > 0.85:
+            penalty += 2
+        elif moon_illum > 0.60:
+            penalty += 1
+    else:  # narrowband — dual-band filter suppresses continuous moon glow
+        if moon_illum > 0.95:
+            penalty += 1
+
+    # Moon angular-separation penalty (scales with illumination)
+    if filter_type == "broadband":
+        sep_threshold = 15.0 + moon_illum * 45.0   # 15° new moon → 60° full moon
+        if moon_sep < sep_threshold * 0.5:
+            penalty += 2
+        elif moon_sep < sep_threshold:
+            penalty += 1
+    else:  # narrowband
+        if moon_sep < 15.0:
+            penalty += 1
+
+    # FOV size fit
+    if size_arcmin < 2.0:
+        penalty += 1   # essentially stellar; no spatial detail at 50 mm f/5
+    elif size_arcmin > 150.0:
+        penalty += 1   # only a fraction of the object fits the frame
+
+    # Observable window duration
+    # Clusters are dense/bright → 15 min is enough.
+    # Nebulae and galaxies need longer integration for acceptable SNR.
+    is_cluster = "cluster" in obj_type.lower()
+    if is_cluster:
+        if window_minutes < 15:
+            penalty += 1
+    else:
+        if window_minutes < 30:
+            penalty += 2
+        elif window_minutes < 60:
+            penalty += 1
+
+    return max(1, base - penalty)
 
 
 def _moon_phase_emoji(illumination: float, phase_angle_deg: float) -> str:

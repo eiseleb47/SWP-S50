@@ -142,15 +142,15 @@ Seestar rating (★–★★★★★), filter type, and observing notes.
 
 ---
 
-## Tests (137 total)
+## Tests (159 total)
 
 | Module | Tests | What is covered |
 |--------|-------|-----------------|
 | `test_catalog.py` | 26 | Catalog integrity, RA/Dec parseability, helper functions |
 | `test_weather.py` | 20 | Unit converters, mocked API responses, merge logic |
 | `test_analysis.py` | 35 | Score formula edge cases, label/color tiers, nightly summaries |
-| `test_astronomy.py` | 29 | Moon emoji, night window ordering, object altitude arrays |
-| `test_charts.py` | 27 | Plotly figure creation, dark theme, edge cases (empty data), DSO card HTML |
+| `test_astronomy.py` | 48 | Moon emoji, night window ordering, object altitude arrays, effective rating, duration penalty |
+| `test_charts.py` | 32 | Plotly figure creation, dark theme, edge cases (empty data), DSO card HTML, effective rating display |
 
 CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull request.
 
@@ -212,3 +212,19 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 - Added desktop GUI launcher (`gui.py`) using PySide6 + QtWebEngine: starts Streamlit on a free local port and displays it in a native Qt window with an animated loading splash
 - Added `launch.sh` shell wrapper, `assets/icon.svg` telescope icon, `install-desktop.sh`, and `uninstall-desktop.sh`
 - Added `PySide6>=6.6.0` to `requirements.txt`; no system packages required — PySide6 ships Qt WebEngine as a pip wheel
+
+### Session 5 (2026-03-29)
+- Fixed observing window "21:07–21:07" (0-minute) bug: changed altitude sampling from 1-hour to 15-minute resolution in `get_visible_objects_tonight()`; windows like "21:07–21:07" (one hourly sample above threshold) now correctly resolve to actual 15-min intervals
+- Added `_effective_rating()` in `astronomy.py`: condition-adjusted rating (1–5) that accounts for moon illumination (broadband −1/−2; narrowband nearly immune via dual-band filter), moon angular separation (threshold scales from 15° new moon to 60° full moon), and FOV size fit (< 2′ or > 150′ loses 1 star for the Seestar's 90′ × 66′ FOV)
+- DSO cards in `charts.py` now show `effective_rating` stars; when conditions degrade the rating, the catalog base rating appears in small grey text `(catalog: ★★★★★)`
+- Moon angular separation now shown on every DSO card (grey when clear, orange when within the interference threshold); was previously hidden unless the boolean flag triggered
+- Moon interference threshold updated from hardcoded 15°/30° to illumination-aware: `sep_threshold = 15° + illum × 45°` (broadband), 15° fixed (narrowband)
+- Objects sorted by `effective_rating` DESC (was `seestar_rating` DESC)
+- Total tests: 142 (up from 137); updated 2 astronomy tests, added 5 chart tests
+
+### Session 5b (2026-03-29)
+- Added observable window duration as a factor in `_effective_rating()`: clusters (bright, dense) only need 15 min → no penalty at ≥ 15 min, −1 below; nebulae and galaxies need longer integration → −1 at 30–59 min, −2 below 30 min
+- `window_minutes = (last_i - first_i) * 15` computed from the 15-min grid and passed to the rating function
+- DSO cards now display window duration alongside start–end time: `22:00–23:45  ·  1h 45m`
+- `_effective_rating()` is now directly importable and fully unit-tested (`TestEffectiveRating`, 17 cases)
+- Total tests: 159 (up from 142)

@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 import pytz
 
-from seestar.astronomy import AstronomyCalculator, _moon_phase_emoji
+from seestar.astronomy import AstronomyCalculator, _moon_phase_emoji, _effective_rating
 
 TZ = pytz.timezone("Europe/Vienna")
 VIENNA = {"lat": 48.2082, "lon": 16.3738}
@@ -47,6 +47,81 @@ class TestMoonPhaseEmoji:
                 result = _moon_phase_emoji(ill, phase)
                 assert isinstance(result, str)
                 assert len(result) > 0
+
+
+# ─── _effective_rating ────────────────────────────────────────────────────────
+
+class TestEffectiveRating:
+    """Unit tests for the condition-adjusted rating helper."""
+
+    def test_ideal_conditions_no_penalty(self):
+        # Dark sky, no moon, well-sized object, long window → full rating
+        assert _effective_rating(5, "broadband", 30, 0.0, 180, "Galaxy", 180) == 5
+
+    def test_bright_moon_broadband_penalty_two(self):
+        # > 85% illumination → −2 for broadband
+        assert _effective_rating(5, "broadband", 30, 0.90, 90, "Galaxy", 180) == 3
+
+    def test_medium_moon_broadband_penalty_one(self):
+        # 60–85% illumination → −1 for broadband
+        assert _effective_rating(5, "broadband", 30, 0.70, 90, "Galaxy", 180) == 4
+
+    def test_bright_moon_narrowband_no_penalty(self):
+        # Dual-band filter: 90% moon has no effect on narrowband
+        assert _effective_rating(5, "narrowband", 30, 0.90, 90, "Emission Nebula", 180) == 5
+
+    def test_very_bright_moon_narrowband_penalty(self):
+        # > 95% → −1 even for narrowband
+        assert _effective_rating(5, "narrowband", 30, 0.97, 90, "Emission Nebula", 180) == 4
+
+    def test_close_moon_broadband_heavy_penalty(self):
+        # Within ½ the separation threshold → −2
+        # At 90% illum: threshold = 15 + 0.9*45 = 55.5°; half = 27.75°
+        assert _effective_rating(5, "broadband", 30, 0.90, 20, "Galaxy", 180) == 1  # −2 moon illum −2 sep
+
+    def test_close_moon_narrowband_penalty(self):
+        # < 15° from moon with narrowband → −1
+        assert _effective_rating(5, "narrowband", 30, 0.0, 10, "Emission Nebula", 180) == 4
+
+    def test_size_too_small_penalty(self):
+        # < 2 arcmin → −1
+        assert _effective_rating(5, "narrowband", 1.5, 0.0, 180, "Planetary Nebula", 180) == 4
+
+    def test_size_too_large_penalty(self):
+        # > 150 arcmin → −1
+        assert _effective_rating(5, "broadband", 200, 0.0, 180, "Galaxy", 180) == 4
+
+    def test_short_window_nebula_heavy_penalty(self):
+        # < 30 min, nebula/galaxy → −2
+        assert _effective_rating(5, "narrowband", 30, 0.0, 180, "Emission Nebula", 15) == 3
+
+    def test_medium_window_nebula_light_penalty(self):
+        # 30–59 min, nebula → −1
+        assert _effective_rating(5, "narrowband", 30, 0.0, 180, "Emission Nebula", 45) == 4
+
+    def test_long_window_nebula_no_penalty(self):
+        # ≥ 60 min → no duration penalty
+        assert _effective_rating(5, "narrowband", 30, 0.0, 180, "Emission Nebula", 90) == 5
+
+    def test_short_window_cluster_light_penalty(self):
+        # < 15 min, cluster → −1 (lighter; clusters are bright)
+        assert _effective_rating(5, "broadband", 20, 0.0, 180, "Globular Cluster", 10) == 4
+
+    def test_15min_window_cluster_no_penalty(self):
+        # 15 min is enough for a cluster
+        assert _effective_rating(5, "broadband", 20, 0.0, 180, "Open Cluster", 15) == 5
+
+    def test_default_window_no_penalty(self):
+        # Default window_minutes=999 → no duration penalty
+        assert _effective_rating(4, "broadband", 20, 0.0, 180, "Galaxy") == 4
+
+    def test_floor_is_one(self):
+        # Stacked penalties never drop below 1
+        assert _effective_rating(1, "broadband", 0.5, 0.90, 5, "Galaxy", 10) == 1
+
+    def test_stacked_penalties_clamped(self):
+        # Many penalties on a low base rating → clamped to 1
+        assert _effective_rating(2, "broadband", 200, 0.95, 10, "Galaxy", 10) == 1
 
 
 # ─── AstronomyCalculator construction ────────────────────────────────────────
@@ -194,9 +269,9 @@ class TestGetVisibleObjectsTonight:
             assert "max_altitude" in obj
             assert obj["max_altitude"] >= 25.0
 
-    def test_results_sorted_by_rating_desc(self):
+    def test_results_sorted_by_effective_rating_desc(self):
         result = self.calc.get_visible_objects_tonight(self._night_window())
-        ratings = [o["seestar_rating"] for o in result]
+        ratings = [o["effective_rating"] for o in result]
         # Check monotonically non-increasing (ties OK)
         for i in range(len(ratings) - 1):
             assert ratings[i] >= ratings[i + 1]
@@ -216,6 +291,12 @@ class TestGetVisibleObjectsTonight:
         for obj in result:
             assert "window_start" in obj
             assert "window_end"   in obj
+
+    def test_visible_objects_have_effective_rating(self):
+        result = self.calc.get_visible_objects_tonight(self._night_window())
+        for obj in result:
+            assert "effective_rating" in obj
+            assert 1 <= obj["effective_rating"] <= 5
 
     def test_moon_interference_flag_present(self):
         moon_info = {
