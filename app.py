@@ -123,7 +123,7 @@ with st.sidebar:
 | Focal length | 250 mm (f/5) |
 | Sensor | Sony IMX462C |
 | Filter | Dual-band (Hα + OIII) |
-| FOV | ~1.5° × 1.1° |
+| FOV | ~1.29° × 0.73° |
 | Mount | Alt-Az + auto-tracking |
 
 The built-in dual-band narrowband filter lets you capture emission

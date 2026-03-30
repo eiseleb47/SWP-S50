@@ -332,8 +332,8 @@ def _effective_rating(
       targets are nearly immune.
     - Moon angular separation: closer proximity means more sky-glow contamination;
       the required separation scales with moon illumination (15° new → 60° full).
-    - FOV size fit (Seestar ≈ 90′ × 66′): objects that are essentially stellar
-      (< 2′) or much larger than the frame (> 150′) lose 1 star.
+    - FOV size fit (Seestar ≈ 77′ × 44′): objects that are essentially stellar
+      (< 2′) or significantly larger than the frame (> 100′) lose 1 star.
     - Observable window duration: clusters are dense/bright enough to yield a good
       result in 15 min; nebulae and galaxies need 30–60+ min for adequate SNR.
     """
@@ -360,11 +360,11 @@ def _effective_rating(
         if moon_sep < 15.0:
             penalty += 1
 
-    # FOV size fit
+    # FOV size fit (Seestar FOV ≈ 77′ × 44′)
     if size_arcmin < 2.0:
         penalty += 1   # essentially stellar; no spatial detail at 50 mm f/5
-    elif size_arcmin > 150.0:
-        penalty += 1   # only a fraction of the object fits the frame
+    elif size_arcmin > 100.0:
+        penalty += 1   # object significantly overfills the frame (> ~1.3× long axis)
 
     # Observable window duration
     # Clusters are dense/bright → 15 min is enough.

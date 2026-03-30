@@ -88,8 +88,12 @@ class TestEffectiveRating:
         assert _effective_rating(5, "narrowband", 1.5, 0.0, 180, "Planetary Nebula", 180) == 4
 
     def test_size_too_large_penalty(self):
-        # > 150 arcmin → −1
-        assert _effective_rating(5, "broadband", 200, 0.0, 180, "Galaxy", 180) == 4
+        # > 100 arcmin (> ~1.3× Seestar's 77′ long axis) → −1
+        assert _effective_rating(5, "broadband", 110, 0.0, 180, "Galaxy", 180) == 4
+
+    def test_size_just_under_large_threshold_no_penalty(self):
+        # ≤ 100 arcmin → no size penalty
+        assert _effective_rating(5, "broadband", 99, 0.0, 180, "Galaxy", 180) == 5
 
     def test_short_window_nebula_heavy_penalty(self):
         # < 30 min, nebula/galaxy → −2

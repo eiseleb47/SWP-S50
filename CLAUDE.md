@@ -115,7 +115,7 @@ When 7timer is unavailable, a cloud-cover proxy is used.
 | Focal length | 250 mm (f/5) |
 | Sensor | Sony IMX462C |
 | Built-in filter | Dual-band narrowband (Hα + OIII) |
-| FOV | ~1.5° × 1.1° |
+| FOV | ~1.29° × 0.73° |
 | Mount | Alt-Az with auto-tracking |
 
 The dual-band filter makes emission nebulae excellent targets even under heavy
@@ -215,7 +215,7 @@ CI runs on Python 3.11 and 3.12 via GitHub Actions on every push and pull reques
 
 ### Session 5 (2026-03-29)
 - Fixed observing window "21:07–21:07" (0-minute) bug: changed altitude sampling from 1-hour to 15-minute resolution in `get_visible_objects_tonight()`; windows like "21:07–21:07" (one hourly sample above threshold) now correctly resolve to actual 15-min intervals
-- Added `_effective_rating()` in `astronomy.py`: condition-adjusted rating (1–5) that accounts for moon illumination (broadband −1/−2; narrowband nearly immune via dual-band filter), moon angular separation (threshold scales from 15° new moon to 60° full moon), and FOV size fit (< 2′ or > 150′ loses 1 star for the Seestar's 90′ × 66′ FOV)
+- Added `_effective_rating()` in `astronomy.py`: condition-adjusted rating (1–5) that accounts for moon illumination (broadband −1/−2; narrowband nearly immune via dual-band filter), moon angular separation (threshold scales from 15° new moon to 60° full moon), and FOV size fit (< 2′ or > 100′ loses 1 star for the Seestar's 77′ × 44′ FOV)
 - DSO cards in `charts.py` now show `effective_rating` stars; when conditions degrade the rating, the catalog base rating appears in small grey text `(catalog: ★★★★★)`
 - Moon angular separation now shown on every DSO card (grey when clear, orange when within the interference threshold); was previously hidden unless the boolean flag triggered
 - Moon interference threshold updated from hardcoded 15°/30° to illumination-aware: `sep_threshold = 15° + illum × 45°` (broadband), 15° fixed (narrowband)

@@ -164,7 +164,7 @@ SWP-S50/
 | Focal length | 250 mm (f/5) |
 | Sensor | Sony IMX462C |
 | Built-in filter | Dual-band narrowband (Hα + OIII) |
-| Field of view | ~1.5° × 1.1° |
+| Field of view | ~1.29° × 0.73° |
 | Mount | Alt-Az with auto-tracking |
 
 The dual-band filter makes emission nebulae excellent targets even under heavy light pollution or moderate moonlight. The catalogue and moon-interference thresholds in the app are set accordingly — narrowband targets use a 15° separation threshold, broadband targets 30°.
